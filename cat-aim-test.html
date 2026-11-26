@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Warcats cat aim test</title>
+<style>
+html,body{margin:0;height:100%;background:#0b1e2d;color:#cfe3f2;font:14px system-ui}
+#stage{position:relative;width:100%;height:100vh;overflow:hidden;touch-action:none}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#hud{position:absolute;left:12px;top:10px;opacity:.7}
+</style></head><body>
+<div id="stage"><canvas id="c"></canvas><div id="hud">Move the mouse (or touch) to aim</div></div>
+<script src="/js/cat-aim.js"></script>
+<script>CatAim.init(document.getElementById('c'),{basePath:'/img/cat/'});</script>
+</body></html>
