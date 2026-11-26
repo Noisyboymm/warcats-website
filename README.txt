@@ -4,6 +4,7 @@ Upload everything in this folder to the ROOT of playwarcats.com, keeping the fol
   index.html            home page
   support/index.html    https://playwarcats.com/support/
   privacy/index.html    https://playwarcats.com/privacy/
+  terms/index.html      https://playwarcats.com/terms/
   delete-account/index.html   https://playwarcats.com/delete-account/   <- use this link in Google Play Console
   css/  js/  img/  fonts/  favicon.svg
 
