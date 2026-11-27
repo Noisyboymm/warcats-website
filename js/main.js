@@ -54,7 +54,12 @@
 
   var ctx = canvas.getContext('2d');
   var SOFT = 'filter' in ctx;
-  var CAT = { x: 0.745, y: 0.49 };     // where the cat is inside hero.jpg (0..1)
+  var FEET = { x: 0.735, y: 0.56 };    // where the cat's feet are inside hero.jpg (0..1)
+  var CAT_H = 0.16;                    // cat height as a share of the picture height
+  var catH = 120, feetX = 0, feetY = 0, lastT = 0;
+  var live = window.CatAim ? window.CatAim.create('/img/cat/') : null;
+  var catCanvas = document.getElementById('livecat');
+  var cctx = catCanvas && catCanvas.getContext ? catCanvas.getContext('2d') : null;
   var POS_X = 0.745, POS_Y = 0.5;      // must match object-position in the CSS
   var W = 0, H = 0, dpr = 1, catX = 0, catY = 0;
 
@@ -67,16 +72,21 @@
   var hint = document.getElementById('hint');
 
   function layout() {
-    var r = hero.getBoundingClientRect();
+    var r = canvas.getBoundingClientRect(), ir = img.getBoundingClientRect();
     W = r.width; H = r.height;
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
+    if (catCanvas) { catCanvas.width = canvas.width; catCanvas.height = canvas.height; }
     var iw = img.naturalWidth || 2040, ih = img.naturalHeight || 1181;
-    var s = Math.max(W / iw, H / ih);
+    var s = Math.max(ir.width / iw, ir.height / ih);
     var dw = iw * s, dh = ih * s;
-    catX = (W - dw) * POS_X + CAT.x * dw;
-    catY = (H - dh) * POS_Y + CAT.y * dh;
+    var offX = ir.left - r.left + (ir.width - dw) * POS_X, offY = ir.top - r.top + (ir.height - dh) * POS_Y;
+    feetX = offX + FEET.x * dw;
+    feetY = offY + FEET.y * dh;
+    catH = CAT_H * dh;
+    catX = feetX;
+    catY = feetY - catH * 0.53;      // chest height: where the view cone starts
   }
 
   function shortest(from, to) {
@@ -94,7 +104,15 @@
     // aim: follow the pointer, or scan slowly when nobody is moving it
     var idle = (t - lastMove) > 3000;
     if (idle) targetAngle = Math.PI + 0.5 + (reduce ? 0 : Math.sin(el * 0.5) * 0.42 + Math.sin(el * 0.21) * 0.12); // left and up, away from the text
-    angle += shortest(angle, targetAngle) * (reduce ? 1 : 0.12);
+    var dt = Math.min(0.05, Math.max(0, (t - lastT) / 1000)); lastT = t;
+    var aimed = null;
+    if (live && cctx) {
+      cctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cctx.clearRect(0, 0, W, H);
+      aimed = live.render(cctx, { fx: feetX, fy: feetY, h: catH, tx: catX + Math.cos(targetAngle) * 600, ty: catY + Math.sin(targetAngle) * 600, dt: reduce ? 1 : dt });
+    }
+    if (aimed === null) angle += shortest(angle, targetAngle) * (reduce ? 1 : 0.12);
+    else angle = aimed;
 
     var len = Math.max(W, H) * 0.62 * grow;
     var ring = Math.max(70, Math.min(W, H) * 0.085) * grow;

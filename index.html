@@ -11,7 +11,7 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="We are Warcats">
 <meta property="og:description" content="A top-down 5v5 tactical shooter for phone and PC.">
-<meta property="og:image" content="https://playwarcats.com/img/hero.jpg">
+<meta property="og:image" content="https://playwarcats.com/img/hero-cat.jpg">
 <meta property="og:url" content="https://playwarcats.com/">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="/fonts/big-shoulders-display-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -43,6 +43,7 @@
   <section class="hero" id="hero" aria-label="Warcats">
     <img class="hero__img" src="/img/hero.jpg" width="2040" height="1181" alt="A white cat in a helmet holds a rifle behind a stone wall on a sunny coast, seen from above." fetchpriority="high">
     <canvas class="hero__fog" id="fog" aria-hidden="true"></canvas>
+    <canvas class="hero__cat" id="livecat" aria-hidden="true"></canvas>
     <div class="hero__shade"></div>
     <div class="wrap hero__body">
       <p class="status">In development for Android and PC</p>
@@ -111,7 +112,7 @@
         </div>
         <div class="modes__panel" id="mode-panel" role="tabpanel" aria-live="polite">
           <div class="modes__shot">
-            <img id="m-ranked" class="is-on" src="/img/hero.jpg" width="2040" height="1181" alt="A cat behind a stone wall on the sunny coast of the Warcats map." loading="lazy" style="object-position: 74% 50%">
+            <img id="m-ranked" class="is-on" src="/img/hero-cat.jpg" width="2040" height="1181" alt="A cat behind a stone wall on the sunny coast of the Warcats map." loading="lazy" style="object-position: 74% 50%">
             <img id="m-unranked" src="/img/town.jpg" width="1278" height="1045" alt="Rooftops of the seaside town on the Warcats map." loading="lazy">
             <img id="m-tdm" src="/img/hud.jpg" width="1072" height="978" alt="A team deathmatch screen: the score, the player list, the cat's health and its rifle ammo." loading="lazy">
             <img id="m-custom" src="/img/crates.jpg" width="1280" height="520" alt="Fish crates stacked in the harbour yard." loading="lazy">
@@ -192,6 +193,7 @@
   </div>
 </footer>
 
+<script src="/js/cat-aim.js" defer></script>
 <script src="/js/main.js" defer></script>
 </body>
 </html>

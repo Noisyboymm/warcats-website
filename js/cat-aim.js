@@ -65,109 +65,84 @@ var CatAim = (function () {
     return { E: E, W: W };
   }
 
-  function init(canvas, opts) {
-    opts = opts || {};
-    var base = opts.basePath || '/img/cat/';
-    var ctx = canvas.getContext('2d');
-    var mouse = { x: null, y: null }, face = 1, gunA = 0, headA = 0, bodyA = 0, last = 0, t0 = performance.now();
-    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var touched = false;
-
-    function resize() {
-      var r = canvas.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(r.width * dpr); canvas.height = Math.round(r.height * dpr);
-    }
-    window.addEventListener('resize', resize); resize();
-    function setPtr(e) { var r = canvas.getBoundingClientRect(); mouse.x = e.clientX - r.left; mouse.y = e.clientY - r.top; touched = true; }
-    window.addEventListener('pointermove', setPtr);
-    window.addEventListener('pointerdown', setPtr);
-
-    function frame(now) {
-      var dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
-      var cw = canvas.width, ch = canvas.height;
-      var k = Math.min(ch * 0.92 / CFG.canvasH, cw * 0.6 / CFG.canvasW);     // PSB px -> canvas px
-      var ox = cw * 0.5 - CFG.canvasW * k / 2, oy = ch * 0.5 - CFG.canvasH * k / 2;
-      var cr = canvas.getBoundingClientRect(), dpr = cw / cr.width;
-      // cursor in PSB space
-      var mx, my;
-      if (mouse.x === null || (!touched && reduce)) { mx = CFG.anchor.x + 900; my = CFG.anchor.y - 60; }
-      else if (!touched) { mx = 0; my = 0; }
-      else { mx = (mouse.x * dpr - ox) / k; my = (mouse.y * dpr - oy) / k; }
-      if (!touched) { // idle sweep until the visitor moves the mouse
-        var s = (now - t0) / 1000, ang = Math.sin(s * 0.6) * 0.5;
-        mx = CFG.anchor.x + Math.cos(ang) * 900 * (Math.sin(s * 0.2) > 0 ? 1 : 1); my = CFG.anchor.y + Math.sin(ang) * 900;
-      }
-      // facing (mirror) with dead zone
+  // create(basePath): loads the layers; render(ctx, p) draws one frame and returns the screen aim angle (radians), or null while loading.
+  // p = { fx, fy: feet centre (css px), h: cat height head-to-feet (css px), tx, ty: point to aim at (css px), dt: seconds }
+  function create(basePath) {
+    var ready = false, face = 1, gunA = 0, headA = 0, bodyA = 0;
+    load(basePath || '/img/cat/', function () { ready = true; });
+    var FEET_Y = 1887, TOP_Y = 0;
+    function render(ctx, p) {
+      if (!ready) return null;
+      var k = p.h / (FEET_Y - TOP_Y);
+      var ox = p.fx - CFG.canvasW / 2 * k, oy = p.fy - FEET_Y * k;
+      var mx = (p.tx - ox) / k, my = (p.ty - oy) / k;
       var relx = (mx - CFG.anchor.x) / CFG.canvasW;
-      if (relx > CFG.mirrorDeadZone * 0.5) face = 1; else if (relx < -CFG.mirrorDeadZone * 0.5) face = -1;
+      if (relx > CFG.mirrorDeadZone * 0.05) face = 1; else if (relx < -CFG.mirrorDeadZone * 0.05) face = -1;
       var dx = (mx - CFG.anchor.x) * face, dy = my - CFG.anchor.y;
-      var aim = deg(Math.atan2(dy, dx));                       // 0 = straight ahead, + = down
+      var aim = deg(Math.atan2(dy, dx));
       var tgtGun = clamp(aim, -CFG.maxGunTurn, CFG.maxGunTurn);
       var tgtHead = clamp(tgtGun * CFG.headWeight, -CFG.maxHead, CFG.maxHead);
       var tgtBody = clamp(tgtGun * CFG.bodyWeight, -CFG.maxBody, CFG.maxBody);
-      var f = 1 - Math.exp(-CFG.turnSmooth * dt);
+      var f = 1 - Math.exp(-CFG.turnSmooth * Math.min(p.dt || 0.016, 0.05));
       gunA += (tgtGun - gunA) * f; headA += (tgtHead - headA) * f; bodyA += (tgtBody - bodyA) * f;
-
-      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cw, ch);
+      ctx.save();
       ctx.translate(ox, oy); ctx.scale(k, k);
       if (face < 0) { ctx.translate(CFG.canvasW, 0); ctx.scale(-1, 1); }
-
-      var cxm = CFG.canvasW / 2, hipY = 1300, neckY = 860;
+      drawCat(ctx, k, gunA, headA, bodyA);
+      ctx.restore();
       var ga = rad(gunA);
-      // ground shadow
-      ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(cxm, 1895, 330, 55, 0, 0, 7); ctx.fill(); ctx.restore();
-      drawL(ctx, 'tail3'); drawL(ctx, 'tail2'); drawL(ctx, 'tail1');
-      drawL(ctx, 'legR1'); drawL(ctx, 'legR2'); drawL(ctx, 'legL1'); drawL(ctx, 'legL2');
-
-      // upper body leans by bodyA about the hips
-      ctx.save(); ctx.translate(cxm, hipY); ctx.rotate(rad(bodyA * 0.35)); ctx.translate(-cxm, -hipY);
-      drawL(ctx, 'hips'); drawL(ctx, 'torso');
-      // gun pivot (stock end) sits gunDistance from the anchor along the aim line
-      var A = CFG.anchor, gl = CFG.gunLength, gimg = L.m4, gh = gl * gimg.height / gimg.width;
-      var pivot = { x: A.x + Math.cos(ga) * CFG.gunDistance, y: A.y + Math.sin(ga) * CFG.gunDistance };
-      function gunPt(fx, fy) { // gun image fraction -> PSB px (rotated)
-        var lx = fx * gl, ly = (fy - CFG.gunBoreY) * gh;
-        return { x: pivot.x + lx * Math.cos(ga) - ly * Math.sin(ga), y: pivot.y + lx * Math.sin(ga) + ly * Math.cos(ga) };
-      }
-      var trig = gunPt(CFG.gripTrigger.x, CFG.gripTrigger.y), sup = gunPt(CFG.gripSupport.x, CFG.gripSupport.y);
-      // arms: left cat arm holds the trigger, right cat arm the support grip (after mirroring, "right" is the muzzle side)
-      var R = CFG.armR, Lf = CFG.armL;
-      function armDraw(side, T, a1, a2, hn) {
-        var Ar = side, a = Math.hypot(Ar.e.x - Ar.s.x, Ar.e.y - Ar.s.y), b = Math.hypot(Ar.w.x - Ar.e.x, Ar.w.y - Ar.e.y);
-        var sol = ik(Ar.s, T, a, b);
-        var base1 = Math.atan2(Ar.e.y - Ar.s.y, Ar.e.x - Ar.s.x), base2 = Math.atan2(Ar.w.y - Ar.e.y, Ar.w.x - Ar.e.x);
-        var r1 = Math.atan2(sol.E.y - Ar.s.y, sol.E.x - Ar.s.x) - base1;
-        var r2 = Math.atan2(sol.W.y - sol.E.y, sol.W.x - sol.E.x) - base2;
-        // upper arm about shoulder
-        drawL(ctx, a1, r1, Ar.s.x, Ar.s.y);
-        // forearm: move its rest elbow to the solved elbow, rotate about it
-        var d2x = sol.E.x - Ar.e.x, d2y = sol.E.y - Ar.e.y;
-        drawL(ctx, a2, r2, sol.E.x, sol.E.y, d2x, d2y);
-        return { W: sol.W, r2: r2, hn: hn, rest: Ar.w, d: { x: sol.W.x - Ar.w.x, y: sol.W.y - Ar.w.y } };
-      }
-      ctx.shadowColor = 'rgba(8,28,48,.85)'; ctx.shadowBlur = 10 * k;
-      var back = armDraw(Lf, trig, 'armL1', 'armL2', 'handL');
-      ctx.shadowBlur = 0;
-      // gun
-      ctx.save(); ctx.translate(pivot.x, pivot.y); ctx.rotate(ga);
-      ctx.drawImage(gimg, 0, -CFG.gunBoreY * gh, gl, gh); ctx.restore();
-      ctx.shadowColor = 'rgba(8,28,48,.85)'; ctx.shadowBlur = 10 * k;
-      var front = armDraw(R, sup, 'armR1', 'armR2', 'handR');
-      [back, front].forEach(function (h) { drawL(ctx, h.hn, h.r2, h.W.x, h.W.y, h.d.x, h.d.y); });
-      ctx.shadowBlur = 0;
-
-      // head: extra lean about the neck, then the face parts
-      ctx.save(); ctx.translate(cxm, neckY); ctx.rotate(rad(headA * 0.5)); ctx.translate(-cxm, -neckY);
-      drawL(ctx, 'earL'); drawL(ctx, 'earR'); drawL(ctx, 'earInner'); drawL(ctx, 'head');
-      // eyes look toward the aim
-      var lookX = Math.cos(ga) * 14, lookY = Math.sin(ga) * 10;
-      ['eyeWhiteL','eyeWhiteR','eyeBlueL','eyeBlueR'].forEach(function (n) { drawL(ctx, n); });
-      ['pupilL','pupilR','glintL','glintR'].forEach(function (n) { drawL(ctx, n, 0, 0, 0, lookX, lookY); });
-      ['lidL','lidR','browL','browR','nose'].forEach(function (n) { drawL(ctx, n); });
-      ctx.restore(); ctx.restore();
-      requestAnimationFrame(frame);
+      return face > 0 ? ga : Math.PI - ga;
     }
-    load(base, function () { requestAnimationFrame(frame); });
+    return { render: render, isReady: function () { return ready; } };
   }
-  return { init: init, cfg: CFG };
+
+  function drawCat(ctx, k, gunA, headA, bodyA) {
+    var cxm = CFG.canvasW / 2, hipY = 1300, neckY = 860, ga = rad(gunA);
+    ctx.save(); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(cxm, 1895, 330, 55, 0, 0, 7); ctx.fill(); ctx.restore();
+    drawL(ctx, 'tail3'); drawL(ctx, 'tail2'); drawL(ctx, 'tail1');
+    drawL(ctx, 'legR1'); drawL(ctx, 'legR2'); drawL(ctx, 'legL1'); drawL(ctx, 'legL2');
+    ctx.save(); ctx.translate(cxm, hipY); ctx.rotate(rad(bodyA * 0.35)); ctx.translate(-cxm, -hipY);
+    drawL(ctx, 'hips'); drawL(ctx, 'torso');
+    var A = CFG.anchor, gl = CFG.gunLength, gimg = L.m4, gh = gl * gimg.height / gimg.width;
+    var pivot = { x: A.x + Math.cos(ga) * CFG.gunDistance, y: A.y + Math.sin(ga) * CFG.gunDistance };
+    function gunPt(fx, fy) {
+      var lx = fx * gl, ly = (fy - CFG.gunBoreY) * gh;
+      return { x: pivot.x + lx * Math.cos(ga) - ly * Math.sin(ga), y: pivot.y + lx * Math.sin(ga) + ly * Math.cos(ga) };
+    }
+    var trig = gunPt(CFG.gripTrigger.x, CFG.gripTrigger.y), sup = gunPt(CFG.gripSupport.x, CFG.gripSupport.y);
+    function armDraw(Ar, T, a1, a2, hn) {
+      var a = Math.hypot(Ar.e.x - Ar.s.x, Ar.e.y - Ar.s.y), b = Math.hypot(Ar.w.x - Ar.e.x, Ar.w.y - Ar.e.y);
+      var sol = ik(Ar.s, T, a, b);
+      var base1 = Math.atan2(Ar.e.y - Ar.s.y, Ar.e.x - Ar.s.x), base2 = Math.atan2(Ar.w.y - Ar.e.y, Ar.w.x - Ar.e.x);
+      var r1 = Math.atan2(sol.E.y - Ar.s.y, sol.E.x - Ar.s.x) - base1;
+      var r2 = Math.atan2(sol.W.y - sol.E.y, sol.W.x - sol.E.x) - base2;
+      drawL(ctx, a1, r1, Ar.s.x, Ar.s.y);
+      drawL(ctx, a2, r2, sol.E.x, sol.E.y, sol.E.x - Ar.e.x, sol.E.y - Ar.e.y);
+      return { W: sol.W, r2: r2, hn: hn, d: { x: sol.W.x - Ar.w.x, y: sol.W.y - Ar.w.y } };
+    }
+    function armsAndGun() {
+    ctx.shadowColor = 'rgba(8,28,48,.85)'; ctx.shadowBlur = 10 * k;
+    var back = armDraw(CFG.armL, trig, 'armL1', 'armL2', 'handL');
+    ctx.shadowBlur = 0;
+    ctx.save(); ctx.translate(pivot.x, pivot.y); ctx.rotate(ga);
+    ctx.drawImage(gimg, 0, -CFG.gunBoreY * gh, gl, gh); ctx.restore();
+    ctx.shadowColor = 'rgba(8,28,48,.85)'; ctx.shadowBlur = 10 * k;
+    var front = armDraw(CFG.armR, sup, 'armR1', 'armR2', 'handR');
+    [back, front].forEach(function (h) { drawL(ctx, h.hn, h.r2, h.W.x, h.W.y, h.d.x, h.d.y); });
+    ctx.shadowBlur = 0;
+    }
+    var gunOver = gunA < -25;   // aiming up: the gun and arms go in front of the head
+    if (!gunOver) armsAndGun();
+    ctx.save(); ctx.translate(cxm, neckY); ctx.rotate(rad(headA * 0.5)); ctx.translate(-cxm, -neckY);
+    drawL(ctx, 'earL'); drawL(ctx, 'earR'); drawL(ctx, 'earInner'); drawL(ctx, 'head');
+    var lookX = Math.cos(ga) * 14, lookY = Math.sin(ga) * 10;
+    ['eyeWhiteL','eyeWhiteR','eyeBlueL','eyeBlueR'].forEach(function (n) { drawL(ctx, n); });
+    ['pupilL','pupilR','glintL','glintR'].forEach(function (n) { drawL(ctx, n, 0, 0, 0, lookX, lookY); });
+    ['lidL','lidR','browL','browR','nose'].forEach(function (n) { drawL(ctx, n); });
+    ctx.restore();
+    if (gunOver) armsAndGun();
+    ctx.restore();
+  }
+
+  return { create: create, cfg: CFG };
 })();
