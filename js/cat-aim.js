@@ -121,14 +121,12 @@ var CatAim = (function () {
       return { W: sol.W, r2: r2, hn: hn, d: { x: sol.W.x - Ar.w.x, y: sol.W.y - Ar.w.y } };
     }
     function armsAndGun() {
-        var back = armDraw(CFG.armL, trig, 'armL1', 'armL2', 'handL');
-    drawL(ctx, back.hn, back.r2, back.W.x, back.W.y, back.d.x, back.d.y);   // back hand stays behind the gun
-    ctx.shadowBlur = 0;
-    ctx.save(); ctx.translate(pivot.x, pivot.y); ctx.rotate(ga);
-    ctx.drawImage(gimg, 0, -CFG.gunBoreY * gh, gl, gh); ctx.restore();
-        var front = armDraw(CFG.armR, sup, 'armR1', 'armR2', 'handR');
-    drawL(ctx, front.hn, front.r2, front.W.x, front.W.y, front.d.x, front.d.y);   // front hand over the gun
-    ctx.shadowBlur = 0;
+      // support arm (reaches out along the barrel) goes BEHIND the gun, the trigger arm and both hands go in FRONT of it
+      var support = armDraw(CFG.armR, sup, 'armR1', 'armR2', 'handR');
+      ctx.save(); ctx.translate(pivot.x, pivot.y); ctx.rotate(ga);
+      ctx.drawImage(gimg, 0, -CFG.gunBoreY * gh, gl, gh); ctx.restore();
+      var trigger = armDraw(CFG.armL, trig, 'armL1', 'armL2', 'handL');
+      [support, trigger].forEach(function (h) { drawL(ctx, h.hn, h.r2, h.W.x, h.W.y, h.d.x, h.d.y); });
     }
     var gunOver = gunA < -25;   // aiming up: the gun and arms go in front of the head
     if (!gunOver) armsAndGun();
