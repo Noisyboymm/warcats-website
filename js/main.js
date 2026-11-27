@@ -54,10 +54,10 @@
 
   var ctx = canvas.getContext('2d');
   var SOFT = 'filter' in ctx;
-  var FEET = { x: 0.735, y: 0.56 };    // where the cat's feet are inside hero.jpg (0..1)
+  var FEET = { x: 0.70, y: 0.56 };    // where the cat's feet are inside hero-map.jpg (0..1)
   var CAT_H = 0.16;                    // cat height as a share of the picture height
   var catH = 120, feetX = 0, feetY = 0, lastT = 0;
-  var live = window.CatAim ? window.CatAim.create('/img/cat/') : null;
+  var live = window.CatAim ? window.CatAim.create('/img/cat-rig/') : null;
   var catCanvas = document.getElementById('livecat');
   var cctx = catCanvas && catCanvas.getContext ? catCanvas.getContext('2d') : null;
   var POS_X = 0.745, POS_Y = 0.5;      // must match object-position in the CSS

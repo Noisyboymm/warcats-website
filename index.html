@@ -11,13 +11,13 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="We are Warcats">
 <meta property="og:description" content="A top-down 5v5 tactical shooter for phone and PC.">
-<meta property="og:image" content="https://playwarcats.com/img/hero-cat.jpg">
+<meta property="og:image" content="https://playwarcats.com/img/share-preview.jpg">
 <meta property="og:url" content="https://playwarcats.com/">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="/fonts/big-shoulders-display-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/hanken-grotesk-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/img/hero.jpg?v=20261127d" as="image">
-<link rel="stylesheet" href="/css/style.css?v=20261127d">
+<link rel="preload" href="/img/hero-map.jpg?v=20261128b" as="image">
+<link rel="stylesheet" href="/css/style.css?v=20261128b">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -41,7 +41,7 @@
 <main id="main">
 
   <section class="hero" id="hero" aria-label="Warcats">
-    <img class="hero__img" src="/img/hero.jpg?v=20261127d" width="2040" height="1181" alt="A white cat in a helmet holds a rifle behind a stone wall on a sunny coast, seen from above." fetchpriority="high">
+    <img class="hero__img" src="/img/hero-map.jpg?v=20261128b" width="2040" height="1181" alt="A white cat aims a rifle on a sunny coast, seen from above. The cat follows your mouse." fetchpriority="high">
     <canvas class="hero__fog" id="fog" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
     <canvas class="hero__cat" id="livecat" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
     <div class="hero__shade"></div>
@@ -112,11 +112,11 @@
         </div>
         <div class="modes__panel" id="mode-panel" role="tabpanel" aria-live="polite">
           <div class="modes__shot">
-            <img id="m-ranked" class="is-on" src="/img/hero-cat.jpg" width="2040" height="1181" alt="A cat behind a stone wall on the sunny coast of the Warcats map." loading="lazy" style="object-position: 74% 50%">
-            <img id="m-unranked" src="/img/town.jpg" width="1278" height="1045" alt="Rooftops of the seaside town on the Warcats map." loading="lazy">
-            <img id="m-tdm" src="/img/hud.jpg" width="1072" height="978" alt="A team deathmatch screen: the score, the player list, the cat's health and its rifle ammo." loading="lazy">
-            <img id="m-custom" src="/img/crates.jpg" width="1280" height="520" alt="Fish crates stacked in the harbour yard." loading="lazy">
-            <img id="m-train" src="/img/cat.jpg" width="760" height="760" alt="A white cat in a helmet aiming a rifle." loading="lazy">
+            <img id="m-ranked" class="is-on" src="/img/mode-ranked.jpg" width="1280" height="960" alt="Stone walls, a blue house and grass on the coast of the Warcats map." loading="lazy">
+            <img id="m-unranked" src="/img/mode-unranked.jpg" width="1278" height="1045" alt="Rooftops of the seaside town on the Warcats map." loading="lazy">
+            <img id="m-tdm" src="/img/mode-deathmatch.jpg" width="1072" height="978" alt="A team deathmatch screen: the score, the player list, the cat's health and its rifle ammo." loading="lazy">
+            <img id="m-custom" src="/img/mode-custom.jpg" width="1280" height="520" alt="Fish crates stacked in the harbour yard." loading="lazy">
+            <img id="m-train" src="/img/mode-training.jpg" width="760" height="760" alt="A white cat in a helmet aiming a rifle." loading="lazy">
           </div>
           <p class="modes__text" id="mode-text">Queue as a solo player or a party and climb the ranked ladder. Win rounds, win matches, move up.</p>
         </div>
@@ -128,7 +128,7 @@
   <section class="band" id="cat">
     <div class="wrap cat">
       <div class="cat__pic">
-        <img src="/img/cat.jpg" width="760" height="760" alt="Close view of the Warcats cat: white fur, blue eyes, a dark helmet with goggles and a rifle." loading="lazy">
+        <img src="/img/customise-cat.jpg" width="760" height="760" alt="The cat customisation screen: a white cat in a helmet, goggles, sunglasses and a tie, with coat colours to choose from." loading="lazy">
       </div>
       <div>
         <h2>Customise your cat</h2>
@@ -193,7 +193,7 @@
   </div>
 </footer>
 
-<script src="/js/cat-aim.js?v=20261127d" defer></script>
-<script src="/js/main.js?v=20261127d" defer></script>
+<script src="/js/cat-aim.js?v=20261128b" defer></script>
+<script src="/js/main.js?v=20261128b" defer></script>
 </body>
 </html>

@@ -69,7 +69,7 @@ var CatAim = (function () {
   // p = { fx, fy: feet centre (css px), h: cat height head-to-feet (css px), tx, ty: point to aim at (css px), dt: seconds }
   function create(basePath) {
     var ready = false, face = 1, gunA = 0, headA = 0, bodyA = 0;
-    load(basePath || '/img/cat/', function () { ready = true; });
+    load(basePath || '/img/cat-rig/', function () { ready = true; });
     var FEET_Y = 1887, TOP_Y = 0;
     function render(ctx, p) {
       if (!ready) return null;

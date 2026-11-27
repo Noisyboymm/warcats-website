@@ -10,3 +10,5 @@ Upload everything in this folder to the ROOT of playwarcats.com, keeping the fol
 
 Fonts are hosted here (no Google Fonts request). Big Shoulders Display and Hanken Grotesk are open-source (SIL OFL).
 When the Google Play listing exists, add a button linking to it in index.html (search for "When the Google Play listing exists").
+
+Images: see img/README.txt for which file shows where (replace a file with a new one of the same name).
