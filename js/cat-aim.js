@@ -7,11 +7,11 @@ var CatAim = (function () {
     exportScale: 0.6,            // layer images were saved at 60% of full size
     canvasW: 1481, canvasH: 1958,
     anchor: { x: 741, y: 884 },  // [GUESS] WeaponAnchor (chest, between the shoulders)
-    gunDistance: 70,             // [GUESS] prefab says 0.25 world units (~238 px at 100 px/unit); 70 puts the stock on the chest
-    gunLength: 820,             // [GUESS] M4 length in cat pixels (image is 1985 px; shown at this length)
+    gunDistance: -60,             // [GUESS] prefab says 0.25 world units (~238 px at 100 px/unit); 70 puts the stock on the chest
+    gunLength: 1250,             // [GUESS] M4 length in cat pixels (image is 1985 px; shown at this length)
     gunBoreY: 165 / 546,         // [ART] muzzle line, fraction of gun height from the top
-    gripTrigger: { x: 0.31, y: 0.80 },   // [GUESS] trigger-hand point on the gun image (fractions)
-    gripSupport: { x: 0.63, y: 0.50 },   // [GUESS] support-hand point on the gun image (fractions)
+    gripTrigger: { x: 0.28, y: 0.78 },   // [GUESS] trigger-hand point on the gun image (fractions)
+    gripSupport: { x: 0.50, y: 0.48 },   // [GUESS] support-hand point on the gun image (fractions)
     maxGunTurn: 88,              // [PREFAB] maxGunTurnFromFacing
     mirrorDeadZone: 0.15,        // [PREFAB] share of width around the middle where the cat keeps its side
     bodyWeight: 0.35 * 2, maxBody: 25,   // [PREFAB] bodyBones: 2 bones x 0.35, maxBodyAngle 25
@@ -121,14 +121,13 @@ var CatAim = (function () {
       return { W: sol.W, r2: r2, hn: hn, d: { x: sol.W.x - Ar.w.x, y: sol.W.y - Ar.w.y } };
     }
     function armsAndGun() {
-    ctx.shadowColor = 'rgba(8,28,48,.85)'; ctx.shadowBlur = 10 * k;
-    var back = armDraw(CFG.armL, trig, 'armL1', 'armL2', 'handL');
+        var back = armDraw(CFG.armL, trig, 'armL1', 'armL2', 'handL');
+    drawL(ctx, back.hn, back.r2, back.W.x, back.W.y, back.d.x, back.d.y);   // back hand stays behind the gun
     ctx.shadowBlur = 0;
     ctx.save(); ctx.translate(pivot.x, pivot.y); ctx.rotate(ga);
     ctx.drawImage(gimg, 0, -CFG.gunBoreY * gh, gl, gh); ctx.restore();
-    ctx.shadowColor = 'rgba(8,28,48,.85)'; ctx.shadowBlur = 10 * k;
-    var front = armDraw(CFG.armR, sup, 'armR1', 'armR2', 'handR');
-    [back, front].forEach(function (h) { drawL(ctx, h.hn, h.r2, h.W.x, h.W.y, h.d.x, h.d.y); });
+        var front = armDraw(CFG.armR, sup, 'armR1', 'armR2', 'handR');
+    drawL(ctx, front.hn, front.r2, front.W.x, front.W.y, front.d.x, front.d.y);   // front hand over the gun
     ctx.shadowBlur = 0;
     }
     var gunOver = gunA < -25;   // aiming up: the gun and arms go in front of the head
